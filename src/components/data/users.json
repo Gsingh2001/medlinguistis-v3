@@ -70,6 +70,24 @@
       "name": "test2",
       "role": "patient",
       "isReport": true
+    },
+    {
+      "user_id": "u009",
+      "patient_id": "0009",
+      "email": "hi@hi.h",
+      "password": "hi",
+      "name": "hi",
+      "role": "patient",
+      "isReport": true
+    },
+    {
+      "user_id": "u010",
+      "patient_id": "0010",
+      "email": "h@y.m",
+      "password": "y",
+      "name": "hi",
+      "role": "patient",
+      "isReport": true
     }
   ]
 }

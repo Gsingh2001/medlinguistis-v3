@@ -69,7 +69,7 @@ const SignupPage = () => {
       toast.success(`Welcome, ${userData.name || userData.email}! Your account has been created.`);
 
       // Redirect after signup
-      router.push("/dashboard");
+      router.push("/form");
 
     } catch (error) {
       console.error(error);

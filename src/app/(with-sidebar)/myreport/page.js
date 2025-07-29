@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -11,17 +11,85 @@ import {
   ListItemText,
   Divider,
   CircularProgress,
-  Paper,
   useTheme,
 } from "@mui/material";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend,
+  PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
 } from "recharts";
 
 import WordCloudComponent from "@/components/WordCloud";
 
 const COLORS = ["#4763b8", "#929ee3", "#4962f3", "#1c286d", "#0c25b6", "#6e8bf0"];
+
+// Helper: Convert value [0-1] to heatmap color (red to green gradient)
+const getHeatmapColor = (value) => {
+  const red = Math.floor(255 * (1 - value));
+  const green = Math.floor(255 * value);
+  return `rgba(${red}, ${green}, 0, 0.7)`; // slightly transparent strong color
+};
+
+// Heatmap component: grid of labeled colored squares
+function Heatmap({ data, title }) {
+  return (
+    <Box sx={{ mb: 4 }}>
+      {title && (
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          mb={3}
+          color="text.primary"
+          sx={{ borderBottom: (theme) => `2px solid ${theme.palette.primary.main}`, pb: 1 }}
+        >
+          {title}
+        </Typography>
+      )}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
+          gap: 2,
+          maxWidth: 700,
+          mx: "auto",
+        }}
+      >
+        {Object.entries(data).map(([key, value]) => {
+          const score = typeof value === "number" ? value : 0;
+          const bgColor = getHeatmapColor(score);
+          const textColor = score > 0.5 ? "black" : "white";
+          return (
+            <Box
+              key={key}
+              sx={{
+                bgcolor: bgColor,
+                borderRadius: 2,
+                boxShadow: 1,
+                cursor: "default",
+                userSelect: "none",
+                height: 80,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                color: textColor,
+                fontWeight: "bold",
+                textTransform: "capitalize",
+                fontSize: "1.1rem",
+                px: 1,
+                textAlign: "center",
+              }}
+              title={`${key.replace(/_/g, " ")}: ${(score * 100).toFixed(1)}%`}
+            >
+              <Typography sx={{ fontWeight: "bold", mb: 0.5, fontSize: "0.95rem" }}>
+                {key.replace(/_/g, " ")}
+              </Typography>
+              <Typography>{(score * 100).toFixed(1)}%</Typography>
+            </Box>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+}
 
 const MyReport = () => {
   const router = useRouter();
@@ -65,8 +133,6 @@ const MyReport = () => {
     fetchData();
   }, []);
 
-
-
   const handlePrint = () => window.print();
 
   if (loading)
@@ -87,14 +153,12 @@ const MyReport = () => {
   const themes = patient?.report?.detected_themes || {};
   const emotions = patient?.report?.sentiment_and_emotion_analysis?.["Top Emotions"] || {};
   const zeroShot = patient?.report?.zero_shot_classification || {};
-  const themeData =
-    themes?.["Detected Themes"]?.map((theme) => ({
-      theme,
-      score: (themes["Confidence Scores"]?.[theme] || 0) * 100,
-    })) || [];
   const emotionData = Object.entries(emotions).map(([name, value]) => ({ name, value }));
   const summary = patient?.report?.qol_summary || "Not available";
   const wordcloud = patient?.report?.wordcloud || [];
+
+  // Extract theme confidence scores for heatmap (normalized 0-1)
+  const themeScores = themes["Confidence Scores"] || {};
 
   return (
     <>
@@ -279,7 +343,7 @@ const MyReport = () => {
       <Section title="Current Medications">
         <List dense disablePadding>
           {metadata["Medications"] &&
-            Object?.entries(metadata["Medications"]).map(([med, dose]) => (
+            Object.entries(metadata["Medications"]).map(([med, dose]) => (
               <ListItem key={med} sx={{ py: 0.5 }} className="avoid-page-break">
                 <ListItemText
                   primaryTypographyProps={{ fontWeight: "medium", color: "text.primary" }}
@@ -329,7 +393,6 @@ const MyReport = () => {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Legend verticalAlign="bottom" height={36} wrapperStyle={{ display: 'none' }} />
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
@@ -339,6 +402,7 @@ const MyReport = () => {
 
       <Divider sx={{ my: 8 }} />
 
+      {/* Zero-Shot Classification Scores List */}
       <Section title="Zero-Shot Classification Scores">
         <List dense disablePadding>
           {Object.entries(zeroShot).map(([label, score]) => (
@@ -351,6 +415,16 @@ const MyReport = () => {
           ))}
         </List>
       </Section>
+
+      <Divider sx={{ my: 8 }} />
+
+      {/* Theme Confidence Heatmap */}
+      <Heatmap data={themeScores} title="Theme Confidence Heatmap" />
+
+      <Divider sx={{ my: 8 }} />
+
+      {/* Zero-Shot Classification Heatmap */}
+      <Heatmap data={zeroShot} title="Zero-Shot Classification Heatmap" />
 
       <Divider sx={{ my: 8 }} />
 
@@ -374,7 +448,6 @@ const MyReport = () => {
             p: 3,
             bgcolor: "grey.50",
             boxShadow: "inset 0 0 8px rgba(0,0,0,0.05)",
-            // Remove box shadow on print
             '@media print': {
               boxShadow: 'none',
               bgcolor: 'transparent',

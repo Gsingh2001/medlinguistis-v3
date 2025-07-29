@@ -16,30 +16,73 @@ import {
   Link,
   Stack,
   Alert,
+  Paper,
+  IconButton,
 } from '@mui/material';
 
 import VerifiedIcon from '@mui/icons-material/Verified';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
+import PsychologyIcon from '@mui/icons-material/Psychology';
+import FindInPageIcon from '@mui/icons-material/FindInPage';
+import SummarizeIcon from '@mui/icons-material/Summarize';
+import GroupIcon from '@mui/icons-material/Group';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
+
+
+const teamMembers = [
+  {
+    name: 'Paria Rezayan',
+    role: 'NLP & Data Preprocessing Lead',
+    avatar: '/path-to-paria-image.jpg',
+  },
+  {
+    name: 'Laxmikant Nishad',
+    role: 'Generative AI & RAG Lead',
+    avatar: '/path-to-laxmikant-image.jpg',
+  },
+  {
+    name: 'Gurmanpreet Singh',
+    role: 'Frontend & MLOps Developer',
+    avatar: '/path-to-gurmanpreet-image.jpg',
+  },
+  {
+    name: 'Vivek Saliya',
+    role: 'Backend & API Integration Specialist',
+    avatar: '/path-to-vivek-image.jpg',
+  },
+];
 
 const features = [
   {
-    icon: <AnalyticsIcon color="primary" sx={{ fontSize: 50 }} aria-label="Advanced QQL Analysis Icon" />,
-    title: 'Advanced QQL Analysis',
-    description:
-      'Leverage cutting-edge AI technology to analyze complex QQL datasets with precision and speed.',
+    icon: <AnalyticsIcon color="primary" sx={{ fontSize: 50 }} />,
+    title: 'Thematic Classification',
+    description: 'Using PubMedBERT, our system classifies patient narratives into 5 key Quality of Life (QoL) themes: Symptoms and Function, Body Image, Mental Health, Interpersonal Relationships, and Employment/Financial Concerns.',
   },
   {
-    icon: <ChatBubbleOutlineIcon color="primary" sx={{ fontSize: 50 }} aria-label="AI Chatbot Assistance Icon" />,
-    title: 'AI Chatbot Assistance',
-    description:
-      'Interact with an intelligent AI chatbot designed to guide you through the analysis process and answer your questions instantly.',
+    icon: <PsychologyIcon color="primary" sx={{ fontSize: 50 }} />,
+    title: 'Sentiment & Emotion Detection',
+    description: 'We detect the overall sentiment (Positive, Negative, Neutral) and extract a range of emotions like Sadness, Anger, and Optimism, providing deeper insight into the patient\'s state of mind.',
   },
   {
-    icon: <VerifiedIcon color="primary" sx={{ fontSize: 50 }} aria-label="Reliable & Secure Icon" />,
-    title: 'Reliable & Secure',
-    description:
-      'Your data privacy is our priority. Our platform is built with robust security measures and complies with all relevant standards.',
+    icon: <VerifiedIcon color="primary" sx={{ fontSize: 50 }} />,
+    title: 'Mental Health Pattern Detection',
+    description: 'Our AI can detect indicators of mental health issues such as anxiety, hopelessness, social withdrawal, and frustration from patient narratives.',
+  },
+  {
+    icon: <FindInPageIcon color="primary" sx={{ fontSize: 50 }} />,
+    title: 'Smart Document Retrieval (RAG)',
+    description: 'Our Retrieval-Augmented Generation system uses a mix of keyword and meaning-based search to find the most relevant information from patient stories.',
+  },
+  {
+    icon: <SummarizeIcon color="primary" sx={{ fontSize: 50 }} />,
+    title: 'AI Summary Generation',
+    description: 'The system generates clear, empathetic, and comprehensive PDF reports detailing the patient\'s condition, allowing clinicians to quickly grasp key insights.',
+  },
+  {
+    icon: <ChatBubbleOutlineIcon color="primary" sx={{ fontSize: 50 }} />,
+    title: 'Interactive AI Chatbot',
+    description: 'Engage with our AI Research Assistant. It allows users to interactively explore patient data, ask questions, and receive instant, contextual answers.',
   },
 ];
 
@@ -47,26 +90,20 @@ const testimonials = [
   {
     name: 'Dr. Sarah Williams',
     role: 'Data Scientist',
-    quote:
-      'Medlinguitis transformed how I analyze QQL data. The AI chatbot is like having an expert at my side 24/7.',
-    avatar:
-      'https://randomuser.me/api/portraits/women/68.jpg',
+    quote: 'Medlinguitis transformed how I analyze QQL data. The AI chatbot is like having an expert at my side 24/7.',
+    avatar: 'https://randomuser.me/api/portraits/women/68.jpg',
   },
   {
     name: 'John Carter',
     role: 'Research Analyst',
-    quote:
-      'The platform’s speed and accuracy are outstanding. It saved me weeks of manual data processing.',
-    avatar:
-      'https://randomuser.me/api/portraits/men/32.jpg',
+    quote: 'The platform’s speed and accuracy are outstanding. It saved me weeks of manual data processing.',
+    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
   },
   {
     name: 'Emily Nguyen',
     role: 'Graduate Student',
-    quote:
-      'A must-have tool for anyone working with QQL data. The interface is intuitive and the support is fantastic!',
-    avatar:
-      'https://randomuser.me/api/portraits/women/45.jpg',
+    quote: 'A must-have tool for anyone working with QQL data. The interface is intuitive and the support is fantastic!',
+    avatar: 'https://randomuser.me/api/portraits/women/45.jpg',
   },
 ];
 
@@ -117,13 +154,13 @@ export default function LandingPage() {
           <Typography variant="h2" component="h1" fontWeight="bold" gutterBottom>
             Welcome to Medlinguitis
           </Typography>
-          <Typography variant="h6" mb={6}>
-            Revolutionizing QQL analysis with powerful AI tools and chatbot assistance — simplifying your research journey.
+          <Typography variant="h5" mb={6}>
+            An AI-driven system transforming patient narratives into scalable, consistent, and clinically actionable insights for holistic Quality of Life assessment.
           </Typography>
 
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
-            spacing={2}
+            spacing={3}
             justifyContent="center"
             maxWidth={400}
             mx="auto"
@@ -133,9 +170,20 @@ export default function LandingPage() {
               color="secondary"
               size="large"
               onClick={() => router.push('/login')}
-              sx={{ textTransform: 'none', fontWeight: 'bold' }}
               fullWidth
               aria-label="Login"
+              sx={{
+                textTransform: 'none',
+                fontWeight: 'bold',
+                borderRadius: '50px',      // pill shape
+                boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #6a1b9a, #8e24aa)',  // nice gradient on hover
+                  boxShadow: '0 6px 20px rgba(138, 43, 226, 0.6)',
+                  transform: 'scale(1.05)',
+                },
+              }}
             >
               Login
             </Button>
@@ -144,50 +192,129 @@ export default function LandingPage() {
               color="secondary"
               size="large"
               onClick={() => router.push('/signup')}
-              sx={{ textTransform: 'none', fontWeight: 'bold' }}
               fullWidth
               aria-label="Signup"
+              sx={{
+                textTransform: 'none',
+                fontWeight: 'bold',
+                borderRadius: '50px',      // pill shape
+                boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #43a047, #66bb6a)',  // greenish gradient on hover
+                  boxShadow: '0 6px 20px rgba(102, 187, 106, 0.6)',
+                  transform: 'scale(1.05)',
+                },
+              }}
             >
               Signup
             </Button>
           </Stack>
+
         </Container>
       </Box>
 
-      {/* Features Section */}
+      {/* The Problem Section */}
+      <Container maxWidth="lg" sx={{ py: 12, textAlign: 'center' }}>
+        <Typography variant="h4" fontWeight="bold" mb={2} color="primary.dark">
+          The Challenge in Hernia Patient Care
+        </Typography>
+        <Typography variant="h6" color="text.secondary" maxWidth="md" mx="auto" mb={4}>
+          Abdominal Wall Hernia (AWH) is a growing surgical issue that often leads to a poor Quality of Life (QoL). Patients frequently experience psychological distress related to body image and identity, which is often missed by current QoL tools. Furthermore, manually identifying these themes is a slow, subjective process that doesn't scale.
+        </Typography>
+        <Box
+          component="img"
+          src="/images/img16.jpg"
+          alt="York Model of QoL themes in AWH patients"
+          sx={{ maxWidth: '40%', height: 'auto', borderRadius: 2, boxShadow: 3, mt: 4 }}
+        />
+        <Typography variant="caption" display="block" mt={2}>
+          The York Model illustrates the complex, interconnected QoL themes for AWH patients.
+        </Typography>
+      </Container>
+
+      {/* How It Works Section */}
+      <Box sx={{ bgcolor: 'primary.light', py: 12 }}>
+        <Container maxWidth="lg" sx={{ textAlign: 'center' }}>
+          <Typography variant="h4" fontWeight="bold" mb={8} color="primary.dark">
+            Our Automated Analysis Pipeline
+          </Typography>
+          <Box
+            component="img"
+            src="/images/img37.jpg"
+            alt="General Flowchart of the Solution"
+            sx={{ maxWidth: '60%', height: 'auto', borderRadius: 2, boxShadow: 3 }}
+          />
+          <Typography variant="body1" mt={4} maxWidth="lg" mx="auto">
+            Our process begins with patient narrative inputs, which undergo initial processing to be cleaned and organized. From there, our Smart Analysis module identifies key topics, understands emotions, and spots mental health signals, while our RAG-powered Smart Information Finder extracts relevant excerpts. All these insights are compiled into a full, downloadable Quality of Life report.
+          </Typography>
+        </Container>
+      </Box>
+
+      {/* Core Features Section */}
       <Container maxWidth="lg" sx={{ py: 12 }}>
         <Typography variant="h4" align="center" fontWeight="bold" mb={8} color="primary.dark">
-          Why Choose Medlinguitis?
+          Core AI & NLP Capabilities
         </Typography>
-     <Grid container spacing={4} alignItems="stretch" justifyContent="center">
-  {features.map(({ icon, title, description }, i) => (
-    <Grid item xs={12} sm={6} md={4} key={i} sx={{ display: 'flex' }}>
-      <Card
-        sx={{
-          flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          px: 4,
-          py: 6,
-          boxShadow: 3,
-          '&:hover': { boxShadow: 6, transform: 'translateY(-6px)', transition: '0.3s' },
-        }}
-      >
-        {icon}
-        <Typography variant="h6" fontWeight="medium" mt={3} mb={1}>
-          {title}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {description}
-        </Typography>
-      </Card>
-    </Grid>
-  ))}
-</Grid>
+        <Grid container spacing={4} alignItems="stretch" justifyContent="center">
+          {features.map(({ icon, title, description }, i) => (
+            <Grid item xs={12} sm={6} md={4} key={i} sx={{ display: 'flex' }}>
+              <Card
+                sx={{
+                  flexGrow: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  px: 4,
+                  py: 6,
+                  boxShadow: 3,
+                  '&:hover': { boxShadow: 6, transform: 'translateY(-6px)', transition: '0.3s' },
+                }}
+              >
+                {icon}
+                <Typography variant="h6" fontWeight="medium" mt={3} mb={1}>
+                  {title}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {description}
+                </Typography>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+
+      <Box sx={{ py: 6, maxWidth: 'lg', mx: 'auto', textAlign: 'center' }}>
+  <Typography variant="h4" fontWeight="bold" mb={4} color="primary.dark">
+    From Data to Diagnosis: A Sample Report
+  </Typography>
+  <Box
+    component="iframe"
+    src="/images/report.pdf"
+    sx={{
+      width: '100%',
+      height: { xs: 400, sm: 600, md: 800 },
+      border: '1px solid #ddd',
+      borderRadius: 2,
+    }}
+    title="Sample PDF Report"
+  />
+  <Typography variant="body1" mt={4} maxWidth="lg" mx="auto">
+    Our system generates detailed reports that summarize patient impacts, rank QoL themes by prominence, and analyze specific domains like Mental Health and Body Image with supporting quotes from the narrative.
+  </Typography>
+</Box>
 
 
+      {/* Team Section */}
+      <Container sx={{ py: 8 }}>
+        <Typography variant="h4" align="center" gutterBottom>Meet the Team</Typography>
+          <Box
+            component="img"
+            src="/images/img11.jpg"
+            alt="General Flowchart of the Solution"
+            sx={{ maxWidth: '100%', height: 'auto', borderRadius: 2, boxShadow: 3 }}
+          />
       </Container>
 
       {/* Testimonials Section */}
@@ -196,41 +323,39 @@ export default function LandingPage() {
           <Typography variant="h4" align="center" fontWeight="bold" mb={8} color="primary.dark">
             What Our Users Say
           </Typography>
-      <Grid container spacing={4} alignItems="stretch" justifyContent="center">
-  {testimonials.map(({ name, role, quote, avatar }, i) => (
-    <Grid item xs={12} sm={6} md={4} key={i} sx={{ display: 'flex' }}>
-      <Card
-        sx={{
-          flexGrow: 1,
-          px: 3,
-          py: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          boxShadow: 2,
-          '&:hover': { boxShadow: 5, transform: 'translateY(-4px)', transition: '0.3s' },
-        }}
-      >
-        <Typography variant="body1" fontStyle="italic" mb={3}>
-          “{quote}”
-        </Typography>
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Avatar src={avatar} alt={`${name} avatar`} sx={{ width: 56, height: 56, border: 2, borderColor: 'primary.light' }} />
-          <Box>
-            <Typography variant="subtitle1" fontWeight="medium" color="primary.main">
-              {name}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {role}
-            </Typography>
-          </Box>
-        </Stack>
-      </Card>
-    </Grid>
-  ))}
-</Grid>
-
-
+          <Grid container spacing={4} alignItems="stretch" justifyContent="center">
+            {testimonials.map(({ name, role, quote, avatar }, i) => (
+              <Grid item xs={12} sm={6} md={4} key={i} sx={{ display: 'flex' }}>
+                <Card
+                  sx={{
+                    flexGrow: 1,
+                    px: 3,
+                    py: 4,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    boxShadow: 2,
+                    '&:hover': { boxShadow: 5, transform: 'translateY(-4px)', transition: '0.3s' },
+                  }}
+                  _   >
+                  <Typography variant="body1" fontStyle="italic" mb={3}>
+                    “{quote}”
+                  </Typography>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Avatar src={avatar} alt={`${name} avatar`} sx={{ width: 56, height: 56, border: 2, borderColor: 'primary.light' }} />
+                    <Box>
+                      <Typography variant="subtitle1" fontWeight="medium" color="primary.main">
+                        {name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {role}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         </Container>
       </Box>
 
@@ -293,7 +418,7 @@ export default function LandingPage() {
           }}
         >
           <Typography variant="body2" sx={{ userSelect: 'none' }}>
-            &copy; {new Date().getFullYear()} Medlinguitis. All rights reserved.
+            &copy; {new Date().getFullYear()} MedLinguists. All rights reserved.
           </Typography>
           <Stack direction="row" spacing={3}>
             <Link

@@ -30,7 +30,6 @@ const PatientsPage = () => {
         const res = await fetch("/api/patients");
         if (!res.ok) throw new Error(`Error: ${res.status}`);
         const data = await res.json();
-        // API returns an array directly
         setPatients(data || []);
       } catch (err) {
         setError(err.message);
@@ -131,9 +130,9 @@ const PatientsPage = () => {
             </TableHead>
 
             <TableBody>
-              {patients.map((p) => (
+              {patients.map((p, index) => (
                 <TableRow
-                  key={p.patient_id || p.id}
+                  key={`${p.patient_id || p.id}-${index}`} // <-- unique key fix here
                   sx={{
                     "&:hover": { backgroundColor: "#e2e8f0" },
                     cursor: "pointer",
