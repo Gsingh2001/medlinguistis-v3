@@ -1,0 +1,12 @@
+[
+  {
+    "Patient_ID": "12345",
+    "name": "John Doe",
+    "age": 30,
+    "symptoms": [
+      "cough",
+      "fever"
+    ],
+    "otherField": "value"
+  }
+]

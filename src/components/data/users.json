@@ -1,0 +1,75 @@
+{
+  "users": [
+    {
+      "user_id": "u001",
+      "patient_id": "MARYSIMPSON",
+      "email": "nora@user.com",
+      "password": "nora",
+      "name": "Nora Ross",
+      "role": "patient",
+      "isReport": true
+    },
+    {
+      "user_id": "u002",
+      "patient_id": "0002",
+      "email": "addison.foster@example.com",
+      "password": "AddisonFosterPass456!",
+      "name": "Addison Foster",
+      "role": "patient",
+      "isReport": false
+    },
+    {
+      "admin_id": "admin001",
+      "name": "Addison Foster",
+      "email": "test@doctor.com",
+      "password": "doctor",
+      "role": "doctor",
+      "isReport": false
+    },
+    {
+      "user_id": "u004",
+      "patient_id": "0004",
+      "email": "hi@h.h",
+      "password": "h",
+      "name": "hihihi",
+      "role": "patient",
+      "isReport": true
+    },
+    {
+      "user_id": "u005",
+      "patient_id": "0005",
+      "email": "h@m.h",
+      "password": "h",
+      "name": "grg",
+      "role": "patient",
+      "isReport": true
+    },
+    {
+      "user_id": "u006",
+      "patient_id": "0006",
+      "email": "test@user.com",
+      "password": "test",
+      "name": "test",
+      "role": "patient",
+      "isReport": true
+    },
+    {
+      "user_id": "u007",
+      "patient_id": "0007",
+      "email": "test1@user.com",
+      "password": "test",
+      "name": "test1",
+      "role": "patient",
+      "isReport": true
+    },
+    {
+      "user_id": "u008",
+      "patient_id": "0008",
+      "email": "test2@t.t",
+      "password": "t",
+      "name": "test2",
+      "role": "patient",
+      "isReport": true
+    }
+  ]
+}
