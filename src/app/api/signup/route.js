@@ -1,7 +1,8 @@
 import { readJson, writeJson } from "@/components/lib/jsonDb";
 import path from "path";
+import jwt from "jsonwebtoken";
 
-const dataPath = path.join( 'src/components/data/users.json');
+const dataPath = path.join('/data/users.json');
 
 export async function POST(request) {
   try {
@@ -15,11 +16,9 @@ export async function POST(request) {
       );
     }
 
-    // Read users.json, fallback to an object with users array
     const data = await readJson(dataPath, { users: [] });
     const users = data.users || [];
 
-    // Check if user already exists by email
     const exists = users.find(user => user.email === email);
     if (exists) {
       return new Response(
@@ -28,26 +27,41 @@ export async function POST(request) {
       );
     }
 
-    // Create new user with IDs padded as strings
     const newIndex = users.length + 1;
     const newUser = {
-      user_id: `u${newIndex.toString().padStart(3, '0')}`,
-      patient_id: newIndex.toString().padStart(4, '0'),
+      userId: `u${newIndex.toString().padStart(3, '0')}`,
+      Patient_ID: newIndex.toString().padStart(4, '0'),
       email,
-      password, // ⚠️ IMPORTANT: Hash password before storing in production
+      password, // ⚠️ Hash in production!
       name,
       role: 'patient',
       isReport: false,
     };
 
-    // Append new user to the array
     users.push(newUser);
-
-    // Write updated users object back to file
     await writeJson(dataPath, { users });
 
+    // ✅ JWT Token generation
+    const token = jwt.sign(
+      {
+        userId: newUser.userId,
+        email: newUser.email,
+        Patient_ID: newUser.Patient_ID,
+        role: newUser.role,
+        isReport: newUser.isReport,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' } // optional expiry
+    );
+
+    const { password: _, ...userWithoutPassword } = newUser;
+
     return new Response(
-      JSON.stringify({ message: 'User created successfully', user: newUser }),
+      JSON.stringify({
+        message: 'User created successfully',
+        user: userWithoutPassword,
+        token
+      }),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
     );
 

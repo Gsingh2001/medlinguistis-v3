@@ -97,41 +97,44 @@ const MyReport = () => {
   const [patient, setPatient] = useState(null);
   const [loading, setLoading] = useState(true);
   const reportRef = useRef();
+  const [token, setToken] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const storedUser = localStorage.getItem("user");
+    const savedToken = localStorage.getItem("token");
+    setToken(savedToken);
+  }, []);
 
-      if (!storedUser) return;
 
-      let id = null;
-      try {
-        const parsed = JSON.parse(storedUser);
-        id = parsed.patient_id;
-      } catch (e) {
-        console.error("Invalid user data in localStorage");
+ useEffect(() => {
+  if (!token) return; // Wait until token is available
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch("/api/report/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        console.error("Failed to fetch report:", response.statusText);
         return;
       }
 
-      if (!id) return;
+      const data = await response.json();
+      setPatient(data[0]);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching report:", error);
+    }
+  };
 
-      setLoading(true);
+  fetchData();
+}, [token]);
 
-      try {
-        const response = await fetch(`/api/report/${id}`);
-        if (!response.ok) throw new Error("Network response was not ok");
 
-        const data = await response.json();
-        setPatient(data);
-      } catch (error) {
-        console.error("Fetch error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchData();
-  }, []);
 
   const handlePrint = () => window.print();
 

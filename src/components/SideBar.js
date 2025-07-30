@@ -18,6 +18,7 @@ import {
   ClickAwayListener,
   useTheme,
   useMediaQuery,
+  CircularProgress,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -30,8 +31,6 @@ import {
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 
-import { useUser, defaultUser } from '@/context/UserContext';
-
 const drawerWidth = 280;
 const collapsedWidth = 70;
 
@@ -43,13 +42,16 @@ function getInitials(name = '') {
 }
 
 export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, active, setActive }) {
-  const { user, setUser } = useUser();
-  const { name, role, isReport } = user;
+  const [user, setUser] = useState(null);  // user state from API
   const router = useRouter();
-
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
+  const [token, setToken] = useState();
 
+  useEffect(() => {
+    const savedToken = localStorage.getItem("token");
+    setToken(savedToken);
+  }, []);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -58,9 +60,7 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, active, setAc
 
   const handleLogout = () => {
     toast.success("Logged out");
-    localStorage.removeItem('user');
-    setUser(defaultUser);
-    handleMenuClose();
+    localStorage.clear();
     router.push('/');
   };
 
@@ -68,14 +68,59 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, active, setAc
     if (!isSidebarOpen) handleMenuClose();
   }, [isSidebarOpen]);
 
+  // Fetch user data on mount from API using token from localStorage
+  useEffect(() => {
+    async function fetchUser() {
+
+      try {
+        const res = await fetch('/api/authenticate', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await res.json();
+        setUser(data.user);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+        localStorage.clear();
+        setUser(null);
+        router.push('/login');
+      }
+    }
+
+    fetchUser();
+  }, [router,token]);
+
+  if (!user) {
+    // You can show a loading spinner while fetching user
+    return (
+      <Box
+        sx={{
+          width: isSidebarOpen ? drawerWidth : collapsedWidth,
+          height: '100vh',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const { name, role, isReport } = user;
+
   const getMenuItems = () => {
     if (role === 'patient') {
       return isReport
         ? [
-            { text: 'Dashboard', icon: <DashboardIcon />, key: 'dashboard', path: '/dashboard' },
-            { text: 'My Report', icon: <AssessmentIcon />, key: 'myreport', path: '/myreport' },
-            { text: 'Form', icon: <DescriptionIcon />, key: 'form', path: '/form' },
-          ]
+          { text: 'Dashboard', icon: <DashboardIcon />, key: 'dashboard', path: '/dashboard' },
+          { text: 'My Report', icon: <AssessmentIcon />, key: 'myreport', path: '/myreport' },
+          { text: 'Form', icon: <DescriptionIcon />, key: 'form', path: '/form' },
+        ]
         : [{ text: 'Form', icon: <DescriptionIcon />, key: 'form', path: '/form' }];
     }
 

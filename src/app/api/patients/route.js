@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { readJson } from '@/components/lib/jsonDb';
 import path from 'path';
 
-const DATA_PATH = path.join('src/components/data/report.json');
+const DATA_PATH = path.join('/data/report.json');
 
 function getEarliestSurgeryDate(surgeries = []) {
   if (!surgeries.length) return '';

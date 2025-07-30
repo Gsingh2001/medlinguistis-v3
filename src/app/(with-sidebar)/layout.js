@@ -1,14 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Box, Toolbar, useTheme, useMediaQuery } from "@mui/material";
+import { Box, Toolbar } from "@mui/material";
 import AppBarTop from "@/components/AppBarTop";
 import Sidebar from "@/components/SideBar";
 
 export default function Layout({ children }) {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(null);
   const [active, setActive] = useState("dashboard");
 

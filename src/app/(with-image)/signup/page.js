@@ -9,14 +9,12 @@ import {
   Typography,
   CircularProgress,
 } from "@mui/material";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/context/UserContext";
 
 const SignupPage = () => {
   const router = useRouter();
-  const { setUser } = useUser();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -64,7 +62,9 @@ const SignupPage = () => {
         isLogin: true,
       };
 
-      setUser(userData);
+      // Save user and token to localStorage
+      localStorage.setItem("user", JSON.stringify(userData));
+      localStorage.setItem("token", data.token);
 
       toast.success(`Welcome, ${userData.name || userData.email}! Your account has been created.`);
 
@@ -146,13 +146,7 @@ const SignupPage = () => {
           {loading ? "Signing up..." : "Sign Up"}
         </Button>
 
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            mt: 1,
-          }}
-        >
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
           <Typography variant="body2" sx={{ mr: 1 }}>
             Already have an account?
           </Typography>
@@ -162,8 +156,7 @@ const SignupPage = () => {
         </Box>
       </Box>
 
-      <ToastContainer position="top-right" autoClose={3000} />
-    </>
+\    </>
   );
 };
 

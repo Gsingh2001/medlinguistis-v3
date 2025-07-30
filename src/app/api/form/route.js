@@ -1,67 +1,47 @@
 import { readJson, writeJson } from "@/components/lib/jsonDb";
 import path from "path";
+import jwt from "jsonwebtoken";
 
-const FORM_PATH = path.join("src/components/data/form.json");
-const REPORT_PATH = path.join("src/components/data/report.json");
-const BASE_URL = 'http://localhost:3000/';
+const FORM_PATH = path.join("/data/form.json");
+const REPORT_PATH = path.join("/data/report.json");
+const MODEL_URL = process.env.MODEL_URL;
 
 // Save form data to form.json
 const saveFormData = async (data) => {
-  console.log("[saveFormData] Reading existing form data...");
   let existing = await readJson(FORM_PATH, []);
-  if (!Array.isArray(existing)) {
-    console.warn("[saveFormData] Existing data is not an array. Resetting...");
-    existing = [];
-  }
+  if (!Array.isArray(existing)) existing = [];
 
-  // Remove any entries with same patient_id
-  existing = existing.filter(item => item.patient_id !== data.patient_id);
+  // Remove old entry for the patient
+  existing = existing.filter(item => item.Patient_ID !== data.Patient_ID);
 
-  // Add the new data
+  // Add new form data
   existing.push(data);
-
   await writeJson(FORM_PATH, existing);
-  console.log("[saveFormData] Form data saved successfully.");
 };
-
 
 // Save AI-generated report data to report.json
 const saveReportData = async (newData) => {
-  console.log("[saveReportData] Reading existing report data...");
   let existing = await readJson(REPORT_PATH, []);
-  if (!Array.isArray(existing)) {
-    console.warn("[saveReportData] Existing report data is not an array. Resetting...");
-    existing = [];
-  }
+  if (!Array.isArray(existing)) existing = [];
 
-  if (newData?.patient_id) {
-    // Remove any existing entry with the same patient_id
-    existing = existing.filter(item => item.patient_id !== newData.patient_id);
-
-    // Add new report object
+  if (newData?.Patient_ID) {
+    existing = existing.filter(item => item.Patient_ID !== newData.Patient_ID);
     existing.push(newData);
-
-    console.log(`[saveReportData] Report for patient_id ${newData.patient_id} replaced/added.`);
   } else {
-    console.warn("[saveReportData] No patient_id found in new data. Appending anyway.");
     existing.push(newData);
   }
 
   await writeJson(REPORT_PATH, existing);
-  console.log("[saveReportData] Report data saved successfully.");
 };
 
-
-
-// Simulate API call to fake model
+// Call fake AI model API
 const callFakeModelAPI = async (formData) => {
   let retries = 5;
   const delay = 2000;
 
   while (retries--) {
     try {
-      console.log(`[callFakeModelAPI] Sending request to fake model API (${5 - retries}/5)...`);
-      const res = await fetch("http://localhost:3000/api/fake-ai", {
+      const res = await fetch(`${MODEL_URL}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -70,57 +50,60 @@ const callFakeModelAPI = async (formData) => {
       if (!res.ok) throw new Error(`Fake model API failed with status ${res.status}`);
 
       const result = await res.json();
-      console.log("[callFakeModelAPI] Received response:", result);
       return result;
 
     } catch (err) {
-      console.warn(`[callFakeModelAPI] Retry failed: ${err.message} (${retries} retries left)`);
+      if (retries === 0) throw new Error('Failed to get response from fake model API after retries');
       await new Promise(r => setTimeout(r, delay));
     }
   }
-
-  throw new Error('Failed to get response from fake model API after retries');
 };
 
-// Handle POST request
 export async function POST(req) {
   try {
-    console.log("[POST] New request received");
+    // Extract token from Authorization header
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Missing or invalid Authorization header" }), { status: 401 });
+    }
+    const token = authHeader.split(" ")[1];
 
-    const formData = await req.json();
-    console.log("[POST] Parsed formData:", formData);
-
-    const { Patient_ID } = formData;
-
-    if (!Patient_ID) {
-      console.warn("[POST] Missing Patient_ID in request");
-      return new Response(JSON.stringify({ error: 'Patient_ID is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid or expired token" }), { status: 401 });
     }
 
-    console.log(`[POST] Saving form data for Patient_ID: ${Patient_ID}`);
+    // Extract Patient_ID, role, and name from token
+    const { Patient_ID, role, name } = decoded;
+    if (!Patient_ID || !role) {
+      return new Response(JSON.stringify({ error: "Token missing required fields" }), { status: 401 });
+    }
+
+    // Parse form data from body, ignore any Patient_ID client sent
+    const formData = await req.json();
+
+    // Overwrite formData.Patient_ID with token Patient_ID to ensure authenticity
+    formData.Patient_ID = Patient_ID;
+
+    // Add name from token to formData if available
+    if (name) {
+      formData.name = name;
+    }
+
+    // Save form data
     await saveFormData(formData);
 
-    console.log("[POST] Calling fake AI model with formData...");
+    // Call fake AI model with formData
     const aiResult = await callFakeModelAPI(formData);
 
-    console.log("[POST] Saving AI-generated report...");
+    // Save AI-generated report
     await saveReportData(aiResult);
 
-    if (aiResult?.report.metadata.Patient_ID) {
-      console.log("[POST] Notifying backend: setting isReport = true");
-      const patient_id = aiResult?.report.metadata.Patient_ID
-      const notifyRes = await fetch(`${BASE_URL}/api/isreport`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patient_id, isReport: true }),
-      });
-      console.log(`[POST] isreport PUT status: ${notifyRes.status}`);
-    }
+    // <-- Removed isReport API call here -->
 
-    console.log("[POST] All steps completed successfully.");
     return new Response(JSON.stringify({
       message: 'Form submitted and AI report saved',
       aiResult,
@@ -130,7 +113,6 @@ export async function POST(req) {
     });
 
   } catch (err) {
-    console.error('[POST /api/form] Error:', err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

@@ -9,14 +9,12 @@ import {
   Typography,
   CircularProgress,
 } from "@mui/material";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/context/UserContext";
 
 const LoginPage = () => {
   const router = useRouter();
-  const { setUser } = useUser();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,28 +44,24 @@ const LoginPage = () => {
         setLoading(false);
         return;
       }
+      console.log(data)
+      // Save token to localStorage
+      localStorage.setItem("token", data.token);
 
-      const userData = {
-        userId: data.user.user_id,
-        patient_id: data.user.patient_id,
-        email: data.user.email,
-        name: data.user.name,
-        role: data.user.role,
-        isReport: data.user.isReport || false,
-        isLogin: true,
-      };
+      // Optional: store basic user info if needed later (without context)
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-      setUser(userData);
+      toast.success(`Welcome, ${data.user.name || data.user.email}!`);
 
-      toast.success(`Welcome back, ${userData.name || userData.email}!`);
-
-      if (userData.role === "patient") {
-        router.push(userData.isReport ? "/dashboard" : "/form");
+      // Redirect based on role
+      if (data.user.role === "patient") {
+        router.push(data.user.isReport ? "/dashboard" : "/form");
       } else {
         router.push("/dashboard");
       }
+
     } catch (error) {
-      console.error(error);
+      console.error("Login error:", error);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -76,7 +70,13 @@ const LoginPage = () => {
 
   return (
     <>
-      <Typography variant="h5" component="h1" align="center" gutterBottom fontWeight="bold">
+      <Typography
+        variant="h5"
+        component="h1"
+        align="center"
+        gutterBottom
+        fontWeight="bold"
+      >
         Login to Medlinguitis
       </Typography>
 
@@ -118,13 +118,7 @@ const LoginPage = () => {
           {loading ? "Logging in..." : "Login"}
         </Button>
 
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            mt: 1,
-          }}
-        >
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
           <Link
             href="/forgot-password"
             underline="hover"
@@ -146,7 +140,6 @@ const LoginPage = () => {
         </Box>
       </Box>
 
-      <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 };

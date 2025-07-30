@@ -336,8 +336,7 @@ export default function LandingPage() {
                     justifyContent: 'space-between',
                     boxShadow: 2,
                     '&:hover': { boxShadow: 5, transform: 'translateY(-4px)', transition: '0.3s' },
-                  }}
-                  _   >
+                  }}>
                   <Typography variant="body1" fontStyle="italic" mb={3}>
                     “{quote}”
                   </Typography>

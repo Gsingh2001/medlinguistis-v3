@@ -1,42 +1,37 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import {
   Card, CardContent, Typography, Grid
 } from '@mui/material';
 import { Bar, Radar } from 'react-chartjs-2';
 import 'chart.js/auto';
-import dynamic from "next/dynamic";
-import { useUser } from '@/context/UserContext';
+import dynamic from 'next/dynamic';
 
-const WordCloudComponent = dynamic(() => import("@/components/WordCloud"), {
-  ssr: false
-});
+const WordCloudComponent = dynamic(() => import('@/components/WordCloud'), { ssr: false });
 
 export default function Dashboard() {
-  const { user } = useUser();
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    if (!user?.role) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
 
     fetch('/api/dashboard', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userrole: user.role,
-        patient_id: user.patient_id
-      })
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
     })
       .then(res => res.json())
       .then(json => setData(json.dashboard))
       .catch(err => console.error('Error:', err));
-  }, [user]);
+  }, []);
 
   if (!data) return <div className="p-6">Loading...</div>;
 
-  const isDoctor = user.role === 'doctor';
-
-  // ==== CHARTS ====
+  const isDoctor = data.role === 'doctor'; // Optional: if backend sends role
   const emotions = isDoctor ? data?.average_emotions : data?.sentiment_and_emotion_analysis?.['Top Emotions'] ?? {};
   const emotionChart = {
     labels: Object.keys(emotions),
@@ -94,7 +89,6 @@ export default function Dashboard() {
         )}
       </Grid>
 
-      {/* Emotion Chart */}
       {Object.keys(emotions).length > 0 && (
         <Card className="shadow-md mt-4">
           <CardContent>
@@ -108,7 +102,6 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {/* Radar Chart */}
       {Object.keys(mental).length > 0 && (
         <Card className="shadow-md mt-4">
           <CardContent>
@@ -122,7 +115,6 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {/* Word Cloud */}
       {wordcloud && wordcloud.length > 0 && (
         <Card className="shadow-md mt-4">
           <CardContent>
@@ -134,7 +126,6 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {/* Summary */}
       {!isDoctor && data.qol_summary && (
         <Card className="shadow-md mt-4">
           <CardContent>

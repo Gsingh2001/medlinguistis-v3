@@ -1,7 +1,7 @@
 import { readJson } from '@/components/lib/jsonDb';
 import path from 'path';
 
-const reportDataPath = path.join('src/components/data/report.json');
+const reportDataPath = path.join('/data/report.json');
 
 export async function GET(req, { params }) {
   try {
