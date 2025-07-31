@@ -1,5 +1,3 @@
-Sure! Here's your complete `README.md` file in one go — clean, professional, and ready to be used on GitHub:
-
 ---
 
 ```markdown
