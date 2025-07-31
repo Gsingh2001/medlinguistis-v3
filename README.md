@@ -1,4 +1,3 @@
-```markdown
 # Medlinguitis 🧠✨
 
 **Medlinguitis** is an AI-driven platform that transforms unstructured patient narratives into structured, clinically actionable Quality of Life (QoL) insights for **Abdominal Wall Hernia (AWH)** patients. Built using **Next.js**, **Material UI**, and **Firebase**, it empowers clinicians and researchers with thematic analysis, mental health signals, emotion detection, and automated PDF reporting.
