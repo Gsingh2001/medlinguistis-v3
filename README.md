@@ -144,11 +144,3 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 MIT License © 2025 \ Sheffield Hallam University
 
 ---
-
-## 📫 Contact
-
-* Email: [medlinguitis@gmail.com](mailto:medlinguitis@gmail.com)
-* GitHub: [@your-username](https://github.com/your-username)
-* Twitter: [@medlinguitis](https://twitter.com/medlinguitis) *(if applicable)*
-
----
