@@ -1,24 +1,11 @@
-import fs from 'fs/promises';
-import path from 'path';
 import jwt from 'jsonwebtoken';
+import database from '@/components/lib/firebase';
+import { ref, get } from 'firebase/database';
 
-const isProd = process.env.VERCEL === '1';
 const JWT_SECRET = process.env.JWT_SECRET;
-
-const USERS_JSON_PATH = isProd
-  ? path.join('/tmp', 'users.json') // You can pre-generate or sync it here for prod
-  : path.join(process.cwd(), 'data', 'users.json'); // Local dev file
 
 export async function POST(request) {
   try {
-    if (!JWT_SECRET) {
-      console.error('JWT_SECRET is not set');
-      return new Response(JSON.stringify({ error: 'Server misconfigured' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
     const { email, password } = await request.json();
 
     if (!email || !password) {
@@ -28,23 +15,12 @@ export async function POST(request) {
       });
     }
 
-    // Try reading users.json
-    let users = [];
-    try {
-      const fileContent = await fs.readFile(USERS_JSON_PATH, 'utf-8');
-      const parsed = JSON.parse(fileContent);
-      users = parsed.users || [];
-    } catch (err) {
-      console.warn('User database missing or unreadable:', err.message);
-      return new Response(JSON.stringify({ error: 'User data unavailable' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    // Fetch users from Firebase Realtime Database
+    const snapshot = await get(ref(database, 'users'));
+    const users = snapshot.exists() ? Object.values(snapshot.val()) : [];
 
-    // Find user
     const foundUser = users.find(
-      user => user.email === email && user.password === password
+      (u) => u.email === email && u.password === password
     );
 
     if (!foundUser) {
@@ -54,26 +30,21 @@ export async function POST(request) {
       });
     }
 
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = foundUser;
-
-    // Create token
+    // Create JWT token
     const tokenPayload = {
-      userId: foundUser.userId,
+      userId: foundUser.user_id,
       email: foundUser.email,
-      Patient_ID: foundUser.Patient_ID,
       role: foundUser.role,
-      isReport: foundUser.isReport,
       name: foundUser.name,
+      isReport: foundUser.isReport,
+      Patient_ID: foundUser.Patient_ID
     };
 
     const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1h' });
 
-    return new Response(JSON.stringify({
-      message: 'Login successful',
-      user: userWithoutPassword,
-      token,
-    }), {
+    const { password: _, ...userWithoutPassword } = foundUser;
+
+    return new Response(JSON.stringify({ message: 'Login successful', user: userWithoutPassword, token }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

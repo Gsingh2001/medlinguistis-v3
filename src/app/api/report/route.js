@@ -1,8 +1,6 @@
-import { readJson } from "@/components/lib/jsonDb";
-import path from "path";
-import jwt from "jsonwebtoken";
-
-const reportDataPath = '/data/report.json';
+import { ref, get } from 'firebase/database';
+import database from '@/components/lib/firebase'; // your firebase init
+import jwt from 'jsonwebtoken';
 
 export async function GET(request) {
   console.log("[GET /api/reports] Incoming request");
@@ -14,10 +12,13 @@ export async function GET(request) {
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.warn("[Auth] Missing or invalid Authorization header");
-      return new Response(JSON.stringify({ error: 'Missing or invalid Authorization header' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ error: 'Missing or invalid Authorization header' }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     const token = authHeader.split(' ')[1];
@@ -36,30 +37,25 @@ export async function GET(request) {
       console.log("[JWT] Decoded token:", decoded);
     } catch (err) {
       console.error("[JWT] Token verification failed:", err.message);
-      return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     const patientId = decoded.Patient_ID;
     console.log("[User] Extracted Patient_ID:", patientId);
 
-    // 3. Read all reports
-    let reports = [];
-    try {
-      reports = await readJson(reportDataPath, []);
-      console.log(`[Reports] Total reports loaded: ${reports.length}`);
-    } catch (readErr) {
-      console.error("[Reports] Failed to read reports.json:", readErr.message);
-      return new Response(JSON.stringify({ error: 'Failed to read reports' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    // 3. Fetch all reports from Firebase Realtime Database
+    const snapshot = await get(ref(database, 'reports'));
+    const reportsData = snapshot.exists() ? Object.values(snapshot.val()) : [];
+    console.log(`[Reports] Total reports loaded: ${reportsData.length}`);
 
     // 4. Filter reports by user's Patient_ID
-    const userReports = reports.filter(report => report.Patient_ID === patientId);
+    const userReports = reportsData.filter(report => report.Patient_ID === patientId);
     console.log(`[Reports] Filtered reports for Patient_ID=${patientId}:`, userReports.length);
 
     // 5. Return filtered reports
@@ -70,9 +66,12 @@ export async function GET(request) {
 
   } catch (error) {
     console.error('[API ERROR] Unexpected failure in /api/reports:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
 }

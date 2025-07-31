@@ -1,8 +1,6 @@
-import { readJson, writeJson } from "@/components/lib/jsonDb";
-import path from "path";
-import jwt from "jsonwebtoken";
-
-const dataPath = path.join('/data/users.json');
+import { ref, get, push, set } from 'firebase/database';
+import database from '@/components/lib/firebase'; // your firebase init file
+import jwt from 'jsonwebtoken';
 
 export async function POST(request) {
   try {
@@ -16,42 +14,47 @@ export async function POST(request) {
       );
     }
 
-    const data = await readJson(dataPath, { users: [] });
-    const users = data.users || [];
+    // Fetch existing users from Firebase
+    const snapshot = await get(ref(database, 'users'));
+    const users = snapshot.exists() ? Object.values(snapshot.val()) : [];
 
-    const exists = users.find(user => user.email === email);
-    if (exists) {
+    // Check if user already exists by email
+    if (users.find(user => user.email === email)) {
       return new Response(
         JSON.stringify({ error: 'User already exists' }),
         { status: 409, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const newIndex = users.length + 1;
+    // Generate new user ID (simple increment based on count)
+    const newUserIdNumber = users.length + 1;
+    const newUserId = `u${newUserIdNumber.toString().padStart(3, '0')}`;
+    const newPatientId = newUserIdNumber.toString().padStart(4, '0');
+
     const newUser = {
-      userId: `u${newIndex.toString().padStart(3, '0')}`,
-      Patient_ID: newIndex.toString().padStart(4, '0'),
+      user_id: newUserId,
+      Patient_ID: newPatientId,
       email,
-      password, // ⚠️ Hash in production!
+      password, // ⚠️ Hash password in production!
       name,
       role: 'patient',
       isReport: false,
     };
 
-    users.push(newUser);
-    await writeJson(dataPath, { users });
+    // Add new user to Firebase under users/{user_id}
+    await set(ref(database, `users/${newUserId}`), newUser);
 
-    // ✅ JWT Token generation
+    // Generate JWT token
     const token = jwt.sign(
       {
-        userId: newUser.userId,
+        userId: newUser.user_id,
         email: newUser.email,
         Patient_ID: newUser.Patient_ID,
         role: newUser.role,
         isReport: newUser.isReport,
       },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' } // optional expiry
+      { expiresIn: '7d' }
     );
 
     const { password: _, ...userWithoutPassword } = newUser;
@@ -60,13 +63,13 @@ export async function POST(request) {
       JSON.stringify({
         message: 'User created successfully',
         user: userWithoutPassword,
-        token
+        token,
       }),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('[POST /api/register] Error:', error);
+    console.error('[POST /api/users] Error:', error);
     return new Response(
       JSON.stringify({ error: 'Server error', details: error.message }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

@@ -37,18 +37,22 @@ const LoginPage = () => {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      let data = {};
+      try {
+        data = await res.json(); // Safe parsing
+      } catch (jsonErr) {
+        console.error("Invalid JSON response", jsonErr);
+        toast.error("Invalid server response");
+        return;
+      }
 
       if (!res.ok) {
         toast.error(data.error || "Login failed");
-        setLoading(false);
         return;
       }
-      console.log(data)
-      // Save token to localStorage
-      localStorage.setItem("token", data.token);
 
-      // Optional: store basic user info if needed later (without context)
+      // Save token and user info
+      localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       toast.success(`Welcome, ${data.user.name || data.user.email}!`);
@@ -139,7 +143,6 @@ const LoginPage = () => {
           </Link>
         </Box>
       </Box>
-
     </>
   );
 };

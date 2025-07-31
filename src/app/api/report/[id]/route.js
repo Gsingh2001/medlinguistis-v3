@@ -1,12 +1,10 @@
-import { readJson } from '@/components/lib/jsonDb';
-import path from 'path';
+import database from "@/components/lib/firebase";
+import { ref, get, child } from "firebase/database";
 
-const reportDataPath = path.join('/data/report.json');
-
-export async function GET(req, { params }) {
+export async function GET(req, context) {
   try {
-    const resolvedParams = await params;
-    const patientId = resolvedParams.id;
+    const { params } = await context;
+    const patientId = params?.id;
 
     if (!patientId) {
       return new Response(JSON.stringify({ error: 'Missing patient ID in params' }), {
@@ -15,11 +13,20 @@ export async function GET(req, { params }) {
       });
     }
 
-    console.log('Reading report data from:', reportDataPath);
+    const dbRef = ref(database);
+    const snapshot = await get(child(dbRef, 'reports'));
 
-    const data = await readJson(reportDataPath, []);
+    if (!snapshot.exists()) {
+      return new Response(JSON.stringify({ error: 'No reports found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
-    const report = data.find(r => r.report?.metadata?.Patient_ID === patientId);
+    const allReports = snapshot.val();
+    const reportsArray = Object.values(allReports);
+
+    const report = reportsArray.find(r => r.report?.metadata?.Patient_ID === patientId);
 
     if (!report) {
       return new Response(JSON.stringify({ error: 'Report not found' }), {

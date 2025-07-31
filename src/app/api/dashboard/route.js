@@ -1,17 +1,22 @@
-import { promises as fs } from 'fs';
+import { ref, get } from 'firebase/database';
+import database from '@/components/lib/firebase';
 import jwt from 'jsonwebtoken';
-
-const reportDataPath = '/data/report.json';
 
 async function loadPatientsData() {
   try {
-    console.log('Loading patient data...');
-    const jsonData = await fs.readFile(reportDataPath, 'utf-8');
-    const data = JSON.parse(jsonData);
-    console.log(`Loaded ${data.length} patient records`);
+    console.log('Loading patient data from Firebase...');
+    const snapshot = await get(ref(database, 'reports'));
+    if (!snapshot.exists()) {
+      console.log('No patient reports found');
+      return [];
+    }
+    const reportsObj = snapshot.val();
+    // reportsObj is an object keyed by Patient_ID or some ID, convert to array
+    const data = Object.values(reportsObj);
+    console.log(`Loaded ${data.length} patient reports`);
     return data;
   } catch (err) {
-    console.error('Error reading patient data:', err);
+    console.error('Error reading patient data from Firebase:', err);
     return [];
   }
 }
@@ -20,8 +25,8 @@ function aggregateDoctorData(patients) {
   console.log('Aggregating data for doctor dashboard...');
   const wordCounts = {};
   patients.forEach((p) => {
-    if (Array.isArray(p.report.wordcloud)) {
-      p.report.wordcloud.forEach(([word, count]) => {
+    if (Array.isArray(p.wordcloud)) {
+      p.wordcloud.forEach(([word, count]) => {
         wordCounts[word] = (wordCounts[word] || 0) + count;
       });
     }
@@ -36,13 +41,13 @@ function aggregateDoctorData(patients) {
   const emotionCounts = {};
 
   patients.forEach((p) => {
-    const confScores = p.report?.detected_themes?.Confidence_Scores || {};
+    const confScores = p.detected_themes?.Confidence_Scores || {};
     for (const theme in confScores) {
       themeSums[theme] = (themeSums[theme] || 0) + confScores[theme];
       themeCounts[theme] = (themeCounts[theme] || 0) + 1;
     }
 
-    const emotions = p.report?.sentiment_and_emotion_analysis?.Top_Emotions || {};
+    const emotions = p.sentiment_and_emotion_analysis?.Top_Emotions || {};
     for (const emotion in emotions) {
       emotionSums[emotion] = (emotionSums[emotion] || 0) + emotions[emotion];
       emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1;
@@ -118,20 +123,11 @@ export async function POST(request) {
 
       console.log(`Found patient data for ID ${Patient_ID}`);
 
-      const { report } = patient;
-
       return new Response(
         JSON.stringify({
           role,
           Patient_ID,
-          dashboard: {
-            metadata: report.metadata,
-            detected_themes: report.detected_themes,
-            sentiment_and_emotion_analysis: report.sentiment_and_emotion_analysis,
-            zero_shot_classification: report.zero_shot_classification,
-            qol_summary: report.qol_summary,
-            wordcloud: report.wordcloud,
-          },
+          dashboard: patient,
         }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       );

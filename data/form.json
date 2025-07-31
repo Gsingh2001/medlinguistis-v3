@@ -1,54 +1,5 @@
 [
   {
-    "patient_id": "0001",
-    "name": "John Doe",
-    "age": 30,
-    "symptoms": [
-      "cough",
-      "fever"
-    ],
-    "other_field": "value"
-  },
-  {
-    "Patient_ID": "0010",
-    "Metadata": {
-      "Age": "1",
-      "Gender": "1",
-      "Weight_Current_Kg": "1",
-      "Weight_Lowest_Kg": "1",
-      "Weight_Highest_Kg": "",
-      "Weight_Status": "",
-      "Medical_History": {
-        "Prior_Major_Surgeries": "hbjh"
-      },
-      "Medications": {
-        "Metformin": "",
-        "Vit D3": "",
-        "Sertraline": "vh ",
-        "Lactulose": ""
-      }
-    },
-    "Narratives": {
-      "Symptoms_Restrictions_Activities": "",
-      "Symptoms_Adaptations_Face": "",
-      "Symptoms_Affect_Movement": "hbhj",
-      "Symptoms_Pain_Coping": "",
-      "BodyImage_SelfConscious_Embarrassed": "",
-      "BodyImage_Others_Noticing": "",
-      "MentalHealth_Affected_Elaborate": "",
-      "MentalHealth_Coping_Strategies": "",
-      "Relationships_Social_Affected": "",
-      "Relationships_Intimate_Affected": "",
-      "Employment_What_Do_You_Do": "",
-      "Employment_Ability_To_Work_Affected": "",
-      "Employment_Changed_Work": "",
-      "Employment_Financial_Affected": "",
-      "SharedDecisionMaking_Questions": "",
-      "SharedDecisionMaking_Hopes": "",
-      "SharedDecisionMaking_Matters_To_You": ""
-    }
-  },
-  {
     "Metadata": {
       "Age": 56,
       "Gender": "Female",
